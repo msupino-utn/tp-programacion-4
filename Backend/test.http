@@ -1,0 +1,64 @@
+### CIUDADES
+
+### 1. Obtener todas las ciudades
+GET http://localhost:3000/ciudades
+
+### 2. Obtener ciudad por ID
+GET http://localhost:3000/ciudades/1
+
+### 3. Crear nueva ciudad
+POST http://localhost:3000/ciudades
+Content-Type: application/json
+
+{
+    "nombre": "Buenos Aires"
+}
+
+### 4. Actualizar una ciudad
+PUT http://localhost:3000/ciudades/1
+Content-Type: application/json
+
+{
+    "nombre": "Ciudad Autónoma de Buenos Aires"
+}
+
+### 5. Eliminar una ciudad
+DELETE http://localhost:3000/ciudades/1
+
+### ATLETAS
+
+### 1. Obtener todos los atletas (con información de ciudad)
+GET http://localhost:3000/atletas
+
+### 2. Obtener atleta por ID
+GET http://localhost:3000/atletas/1
+
+### 3. Obtener atletas por ciudad
+GET http://localhost:3000/atletas/ciudad/2
+
+### 4. Crear nuevo atleta
+POST http://localhost:3000/atletas
+Content-Type: application/json
+
+{
+    "dni": 11111111,
+    "nombre": "Juan Corredor",
+    "tiempo": "2h 05m 15s",
+    "posicion": 1,
+    "ciudadId": 2
+}
+
+### 5. Actualizar atleta
+PUT http://localhost:3000/atletas/1
+Content-Type: application/json
+
+{
+    "dni": 11111111,
+    "nombre": "Juan Corredor Actualizado",
+    "tiempo": "2h 03m 20s",
+    "posicion": 1,
+    "ciudadId": 2
+}
+
+### 6. Eliminar atleta
+DELETE http://localhost:3000/atletas/1
