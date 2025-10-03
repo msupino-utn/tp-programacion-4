@@ -10,7 +10,8 @@ router.get("/", async (req, res) => {
             .query(`SELECT 
                         id,
                         nombre
-                    FROM ciudades`);
+                    FROM ciudades
+                    ORDER BY nombre`);
         res.json(cities.recordset);
     }
     catch (err){

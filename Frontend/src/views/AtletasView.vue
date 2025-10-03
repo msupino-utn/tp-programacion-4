@@ -13,6 +13,34 @@
           </button>
         </div>
 
+        <div class="row mb-4">
+          <div class="col-12">
+            <div class="card">
+              <div class="card-body">
+                <div class="d-flex align-items-center gap-3">
+                  <label for="filtroCity" class="form-label mb-0">Buscar por ciudad:</label>
+                  <select 
+                    class="form-select" 
+                    id="filtroCity" 
+                    v-model="filtroActivo"
+                    :disabled="loading"
+                    style="min-width: 200px; max-width: 100%;"
+                  >
+                    <option value="">Todas las ciudades</option>
+                    <option 
+                      v-for="ciudad in ciudades" 
+                      :key="ciudad.id" 
+                      :value="ciudad.id"
+                    >
+                      {{ ciudad.nombre }}
+                    </option>
+                  </select>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
         <div v-if="loading" class="text-center py-4">
           <div class="spinner-border text-primary" role="status">
           </div>
@@ -21,8 +49,9 @@
 
         <div v-if="!loading" class="card">
           <div class="card-body">
-            <div v-if="atletas.length === 0" class="text-center py-4">
-              <p class="text-muted">No hay atletas registrados</p>
+            <div v-if="atletasFiltrados.length === 0" class="text-center py-4">
+              <p class="text-muted" v-if="atletas.length === 0">No hay atletas registrados</p>
+              <p class="text-muted" v-else>No se encontraron atletas para la ciudad seleccionada</p>
             </div>
             <div v-else class="table-responsive">
               <table class="table table-striped table-hover">
@@ -37,7 +66,7 @@
                   </tr>
                 </thead>
                  <tbody>
-                   <tr v-for="atleta in atletas" :key="atleta.id">
+                   <tr v-for="atleta in atletasFiltrados" :key="atleta.id">
                      <td>
                        <span v-if="atleta.posicion > 3" :class="getBadgeClass(atleta)">{{ atleta.posicion }}</span>
                        <span v-else :class="getBadgeClass(atleta)" class="badge ms-1">
@@ -244,7 +273,7 @@
 </template>
 
 <script setup>
-import { ref, reactive, onMounted } from 'vue'
+import { ref, reactive, onMounted, computed } from 'vue'
 import { Modal, Toast } from 'bootstrap'
 import { atletasApi } from '../composables/atletasApiService'
 import { ciudadesApi } from '../composables/ciudadesApiService'
@@ -260,6 +289,7 @@ const modal = ref(null)
 const modalEliminar = ref(null)
 const toast = ref(null)
 const toastSuccess = ref(null)
+const filtroActivo = ref('')
 const atletaSeleccionado = reactive({
   id: 0,
   dni: '',
@@ -432,6 +462,13 @@ onMounted(async () => {
     formRef.value.reset();
     formRef.value.classList.remove("was-validated");
   });
+})
+
+const atletasFiltrados = computed(() => {
+  if (!filtroActivo.value) {
+    return atletas.value
+  }
+  return atletas.value.filter(atleta => atleta.ciudadId === parseInt(filtroActivo.value))
 })
 </script>
 
