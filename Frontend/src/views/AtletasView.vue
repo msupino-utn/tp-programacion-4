@@ -36,33 +36,39 @@
                     <th>Acciones</th>
                   </tr>
                 </thead>
-                <tbody>
-                  <tr v-for="atleta in atletas" :key="atleta.id">
-                    <td>
-                      <span class="badge bg-primary">{{ atleta.posicion }}</span>
-                    </td>
-                    <td>{{ atleta.dni }}</td>
-                    <td>{{ atleta.nombre }}</td>
-                    <td>{{ atleta.tiempo }}</td>
-                    <td>{{ atleta.ciudadNombre || 'N/A' }}</td>
-                    <td>
-                      <button 
-                        class="btn btn-sm btn-outline-primary me-2"
-                        @click="editarAtleta(atleta)"
-                        :disabled="loading"
-                      >
-                        <i class="fas fa-edit"></i> Editar
-                      </button>
-                      <button 
-                        class="btn btn-sm btn-outline-danger"
-                        @click="abrirModalEliminar(atleta)"
-                        :disabled="loading"
-                      >
-                        <i class="fas fa-trash"></i> Eliminar
-                      </button>
-                    </td>
-                  </tr>
-                </tbody>
+                 <tbody>
+                   <tr v-for="atleta in atletas" :key="atleta.id">
+                     <td>
+                       <span v-if="atleta.posicion > 3" :class="getBadgeClass(atleta)">{{ atleta.posicion }}</span>
+                       <span v-else :class="getBadgeClass(atleta)" class="badge ms-1">
+                         <i class="fas fa-trophy"></i> {{ getPosicionTexto(atleta.posicion) }}
+                       </span>
+                     </td>
+                     <td>{{ atleta.dni }}</td>
+                     <td>
+                       <strong v-if="atleta.posicion <= 3">{{ atleta.nombre }}</strong>
+                       <span v-else>{{ atleta.nombre }}</span>
+                     </td>
+                     <td>{{ atleta.tiempo }}</td>
+                     <td>{{ atleta.ciudadNombre}}</td>
+                     <td>
+                       <button 
+                         class="btn btn-sm btn-outline-primary me-2"
+                         @click="editarAtleta(atleta)"
+                         :disabled="loading"
+                       >
+                         <i class="fas fa-edit"></i> Editar
+                       </button>
+                       <button 
+                         class="btn btn-sm btn-outline-danger"
+                         @click="abrirModalEliminar(atleta)"
+                         :disabled="loading"
+                       >
+                         <i class="fas fa-trash"></i> Eliminar
+                       </button>
+                     </td>
+                   </tr>
+                 </tbody>
               </table>
             </div>
           </div>
@@ -80,7 +86,7 @@
             <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
           </div>
           <div class="modal-body">
-            <form @submit.prevent="guardarAtleta">
+            <form @submit.prevent="guardarAtleta" class="needs-validation" novalidate ref="formRef">
               <div class="row">
                 <div class="col-md-6">
                   <div class="mb-3">
@@ -94,6 +100,9 @@
                       required
                       min="1"
                     >
+                    <div class="invalid-feedback">
+                      El DNI es obligatorio.
+                    </div>
                   </div>
                 </div>
                 <div class="col-md-6">
@@ -107,6 +116,9 @@
                       :disabled="loading"
                       required
                     >
+                    <div class="invalid-feedback">
+                      El nombre es obligatorio.
+                    </div>
                   </div>
                 </div>
               </div>
@@ -120,9 +132,12 @@
                       id="tiempo" 
                       v-model="atletaSeleccionado.tiempo"
                       :disabled="loading"
-                      placeholder="Ej: 01:30:45"
+                      placeholder="Ej: 1h 20m 15s"
                       required
                     >
+                    <div class="invalid-feedback">
+                      El tiempo es obligatorio.
+                    </div>
                   </div>
                 </div>
                 <div class="col-md-6">
@@ -137,6 +152,9 @@
                       required
                       min="1"
                     >
+                    <div class="invalid-feedback">
+                      La posición es obligatoria.
+                    </div>
                   </div>
                 </div>
               </div>
@@ -158,6 +176,9 @@
                     {{ ciudad.nombre }}
                   </option>
                 </select>
+                <div class="invalid-feedback">
+                  La ciudad es obligatoria.
+                </div>
               </div>
             </form>
           </div>
@@ -228,6 +249,7 @@ import { Modal, Toast } from 'bootstrap'
 import { atletasApi } from '../composables/atletasApiService'
 import { ciudadesApi } from '../composables/ciudadesApiService'
 
+const formRef = ref(null)
 const atletas = ref([])
 const ciudades = ref([])
 const loading = ref(false)
@@ -246,6 +268,20 @@ const atletaSeleccionado = reactive({
   posicion: '',
   ciudadId: ''
 })
+
+const getPosicionTexto = (posicion) => {
+  if (posicion === 1) return '1° Lugar'
+  if (posicion === 2) return '2° Lugar' 
+  if (posicion === 3) return '3° Lugar'
+  return ''
+}
+
+const getBadgeClass = (atleta) => {
+  if (atleta.posicion === 1) return 'badge bg-gold text-dark fw-bold'
+  if (atleta.posicion === 2) return 'badge bg-silver text-dark fw-bold'
+  if (atleta.posicion === 3) return 'badge bg-bronze text-white fw-bold'
+  return 'badge bg-primary'
+}
 
 const cargarAtletas = async () => {
   loading.value = true
@@ -317,10 +353,11 @@ const confirmarEliminar = async () => {
 }
 
 const guardarAtleta = async () => {
-  if (!atletaSeleccionado.dni || !atletaSeleccionado.nombre.trim() || 
-      !atletaSeleccionado.tiempo.trim() || !atletaSeleccionado.posicion || 
-      !atletaSeleccionado.ciudadId) {
-    return
+  const form = formRef.value;
+
+  if (!form.checkValidity()) {
+    form.classList.add("was-validated");
+    return;
   }
 
   loading.value = true
@@ -390,5 +427,24 @@ onMounted(async () => {
     cargarAtletas(),
     cargarCiudades()
   ])
+
+  modal.value.addEventListener("hidden.bs.modal", () => {
+    formRef.value.reset();
+    formRef.value.classList.remove("was-validated");
+  });
 })
 </script>
+
+<style scoped>
+.bg-gold {
+  background-color: #ffd700 !important;
+}
+
+.bg-silver {
+  background-color: #c0c0c0 !important;
+}
+
+.bg-bronze {
+  background-color: #cd7f32 !important;
+}
+</style>

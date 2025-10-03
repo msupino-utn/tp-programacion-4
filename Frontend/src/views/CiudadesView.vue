@@ -70,7 +70,7 @@
             <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
           </div>
           <div class="modal-body">
-            <form @submit.prevent="guardarCiudad">
+            <form @submit.prevent="guardarCiudad" class="needs-validation" novalidate ref="formRef">
               <div class="mb-3">
                 <label for="nombre" class="form-label">Nombre *</label>
                 <input 
@@ -81,6 +81,9 @@
                   :disabled="loading"
                   required
                 >
+                <div class="invalid-feedback">
+                  El nombre es obligatorio.
+                </div>
               </div>
             </form>
           </div>
@@ -150,6 +153,7 @@ import { ref, reactive, onMounted } from 'vue'
 import { Modal, Toast } from 'bootstrap'
 import { ciudadesApi } from '../composables/ciudadesApiService'
 
+const formRef = ref(null)
 const ciudades = ref([])
 const loading = ref(false)
 const modoEdicion = ref(false)
@@ -222,8 +226,11 @@ const confirmarEliminar = async () => {
 }
 
 const guardarCiudad = async () => {
-  if (!ciudadSeleccionada.nombre.trim()) {
-    return
+  const form = formRef.value;
+
+  if (!form.checkValidity()) {
+    form.classList.add("was-validated");
+    return;
   }
 
   loading.value = true
@@ -278,6 +285,11 @@ const mostrarToastSuccess = (texto) => {
 
 onMounted(() => {
   cargarCiudades()
+
+  modal.value.addEventListener("hidden.bs.modal", () => {
+    formRef.value.reset();
+    formRef.value.classList.remove("was-validated");
+  });
 })
 </script>
 

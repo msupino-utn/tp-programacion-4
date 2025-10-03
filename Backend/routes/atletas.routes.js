@@ -19,7 +19,9 @@ router.get("/", async (req, res) => {
                 FROM atletas a
                 LEFT JOIN ciudades c
                     ON a.ciudadId = c.id
-                ORDER BY a.posicion ASC
+                ORDER BY 
+                    c.nombre,
+                    a.posicion
             `);
         res.json(athletes.recordset);
     }
@@ -75,7 +77,7 @@ router.get("/ciudad/:ciudadId", async (req, res) => {
                 FROM atletas a
                 LEFT JOIN ciudades c ON a.ciudadId = c.id
                 WHERE a.ciudadId = @ciudadId
-                ORDER BY a.posicion ASC
+                ORDER BY a.posicion
             `);
         res.json(athletes.recordset);
     }
@@ -161,10 +163,12 @@ router.put("/:id", async (req, res) => {
 
         const positionExists = await pool.request()
             .input("posicion", sql.Int, posicion)
+            .input("ciudadId", sql.Int, ciudadId)
             .input("id", sql.Int, req.params.id)
             .query(`SELECT TOP 1 id
                     FROM atletas
                     WHERE posicion = @posicion
+                    AND ciudadId = @ciudadId
                     AND id != @id`);
 
         if (positionExists.recordset.length > 0) {
